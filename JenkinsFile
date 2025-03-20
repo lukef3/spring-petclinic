@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    tools {
+        maven 'Maven_3.9.9' // Jenkins maven installation
+    }
+
     stages {
         stage('Checkout') {
             steps {
@@ -9,7 +13,9 @@ pipeline {
         }
         stage('Build') {
             steps {
-                sh 'mvn clean install'
+                withMaven(maven: 'Maven_3.9.9'){ // Run Maven command using withMaven from maven pipeline plugin
+                    sh 'mvn clean install'
+                }
             }
         }
     }
