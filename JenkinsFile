@@ -38,6 +38,13 @@ pipeline {
                 }
             }
         }
+
+        stage('Deploy to Google Cloud Run')
+            steps{
+                withCredentials([file(credentialsId: 'gcloud-creds', variable: 'GCLOUD_CREDS')]) {
+                sh 'gcloud auth activate-service-account --key-file="$GCLOUD_CREDS"' // authenticate with service account with my credentials file
+                sh 'gcloud run deploy spring-petclinic --image gcr.io/${GCLOUD_PROJECT_ID}/spring-petclinic:latest'  // https://cloud.google.com/run/docs/deploying#gcloud
+            }
     }
 
     post {
