@@ -6,7 +6,7 @@ pipeline {
     }
 
     environment {
-        GCLOUD_PROJECT_ID = 'petclinic-455414 '
+        GCLOUD_PROJECT_ID = 'petclinic-455414'
     }
 
     stages {
@@ -31,6 +31,7 @@ pipeline {
             steps {
                 withCredentials([string(credentialsId: 'gcloud-creds', variable: 'GCLOUD_CREDS')]) {
                 sh 'gcloud version'
+                }
             }
         }
     }
