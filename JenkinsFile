@@ -6,6 +6,11 @@ pipeline {
     }
 
     stages {
+        stage('test google cloud') {
+                steps {
+                    sh 'gcloud version'
+                }
+            }
         stage('Checkout') {
             steps {
                 git url: 'https://github.com/lukef3/spring-petclinic.git', branch: 'main'
