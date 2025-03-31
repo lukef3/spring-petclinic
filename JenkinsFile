@@ -29,7 +29,7 @@ pipeline {
         }
         stage('Push Image to Google Container Registry') {
             steps {
-                withCredentials([string(credentialsId: 'gcloud-creds', variable: 'GCLOUD_CREDS')]) {
+                withCredentials([file(credentialsId: 'gcloud-creds', variable: 'GCLOUD_CREDS')]) {
                 sh 'gcloud version'
                 }
             }
