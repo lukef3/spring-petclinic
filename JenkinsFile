@@ -10,23 +10,23 @@ pipeline {
     }
 
     stages {
-//         stage('Checkout') {
-//             steps {
-//                 git url: 'https://github.com/lukef3/spring-petclinic.git', branch: 'main'
-//             }
-//         }
-//         stage('Build') {
-//             steps {
-//                 withMaven(maven: 'Maven_3.9.9'){ // Run Maven command using withMaven from maven pipeline plugin
-//                     sh 'mvn clean install'
-//                 }
-//             }
-//         }
-//         stage('Docker Build') {
-//             steps {
-//                 sh 'docker build -t spring-petclinic:latest .'
-//             }
-//         }
+        stage('Checkout') {
+            steps {
+                git url: 'https://github.com/lukef3/spring-petclinic.git', branch: 'main'
+            }
+        }
+        stage('Build') {
+            steps {
+                withMaven(maven: 'Maven_3.9.9'){ // Run Maven command using withMaven from maven pipeline plugin
+                    sh 'mvn clean install'
+                }
+            }
+        }
+        stage('Docker Build') {
+            steps {
+                sh 'docker build -t spring-petclinic:latest .'
+            }
+        }
 
         stage('Push Image to Google Container Registry') {
             steps {
