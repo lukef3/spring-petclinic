@@ -5,12 +5,11 @@ pipeline {
         maven 'Maven_3.9.9' // Jenkins maven installation
     }
 
+    environment {
+        GCLOUD_PROJECT_ID = 'petclinic-455414 '
+    }
+
     stages {
-        stage('test google cloud') {
-                steps {
-                    sh 'gcloud version'
-                }
-            }
         stage('Checkout') {
             steps {
                 git url: 'https://github.com/lukef3/spring-petclinic.git', branch: 'main'
@@ -26,6 +25,12 @@ pipeline {
         stage('Docker Build') {
             steps {
                 sh 'docker build -t spring-petclinic:latest .'
+            }
+        }
+        stage('Push Image to Google Container Registry') {
+            steps {
+                withCredentials([string(credentialsId: 'gcloud-creds', variable: 'GCLOUD_CREDS')]) {
+                sh 'gcloud version'
             }
         }
     }
