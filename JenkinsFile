@@ -29,9 +29,10 @@ pipeline {
                 }
             }
         }
+        stage('Sonarqube Quality Gate')
         stage('Docker Build') {
             steps {
-                sh 'docker build -t spring-petclinic:latest .'
+                waitForQualityGate abortPipeline: true // wait for scan results to return
             }
         }
 
