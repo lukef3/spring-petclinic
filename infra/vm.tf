@@ -15,7 +15,6 @@ variable "gcp_project_id" {}
 variable "service_account_email" {}
 variable "instance_name" {}
 
-
 # VM Provisioning
 resource "google_compute_instance" "docker_host" {
   project      = var.gcp_project_id

@@ -8,6 +8,7 @@ pipeline {
     environment {
         GCLOUD_PROJECT_ID = 'petclinic-455414'
         INSTANCE_NAME = 'petclinic-vm'
+        SERVICE_ACC_EMAIL = 'jenkins-gcloud@petclinic-455414.iam.gserviceaccount.com'
     }
 
     stages {
@@ -58,12 +59,10 @@ pipeline {
             steps{
                 dir('infra'){
                     sh 'terraform init'
-                    withCredentials([string(credentialsId: 'service-acc-email', variable: 'SERVICE_ACC_EMAIL')]) {
-                        sh "terraform apply -auto-approve \
-                            -var='gcp_project_id=${GCLOUD_PROJECT_ID}' \
-                            -var='service_account_email=${SERVICE_ACC_EMAIL}' \
-                            -var='instance_name=${INSTANCE_NAME}'"
-                    }
+                    sh "terraform apply -auto-approve \
+                        -var='gcp_project_id=${GCLOUD_PROJECT_ID}' \
+                        -var='service_account_email=${SERVICE_ACC_EMAIL}' \
+                        -var='instance_name=${INSTANCE_NAME}'"
                 }
             }
         }
