@@ -58,11 +58,18 @@ pipeline {
         stage('Provision and Deploy to Google Compute Engine'){
             steps{
                 dir('infra'){
-                    sh 'terraform init'
-                    sh "terraform apply -auto-approve \
-                        -var='gcp_project_id=${GCLOUD_PROJECT_ID}' \
-                        -var='service_account_email=${SERVICE_ACC_EMAIL}' \
-                        -var='instance_name=${INSTANCE_NAME}'"
+                     withCredentials([file(credentialsId: 'gcloud-creds', variable: 'GCLOUD_CREDS_PATH')]) {
+                        script {
+                             env.GOOGLE_APPLICATION_CREDENTIALS = env.GCLOUD_CREDS_PATH
+                             echo "Initializing Terraform..."
+                             sh 'terraform init -reconfigure'
+                             echo "Applying Terraform changes..."
+                             sh """terraform apply -auto-approve \
+                                   -var='gcp_project_id=${GCLOUD_PROJECT_ID}' \
+                                   -var='service_account_email=${SERVICE_ACC_EMAIL}' \
+                                   -var='instance_name=${INSTANCE_NAME}' """
+                         }
+                    }
                 }
             }
         }
