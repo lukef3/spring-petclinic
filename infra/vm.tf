@@ -58,7 +58,7 @@ resource "google_compute_instance" "docker_host" {
     docker rm spring-petclinic || true
 
     echo "Startup Script: Starting new PetClinic container"
-    docker run -d --name spring-petclinic -p 8081:8080 --restart always gcr.io/${var.gcp_project_id}/spring-petclinic:latest
+    docker run -d --name spring-petclinic -p 8081:8081 --restart always gcr.io/${var.gcp_project_id}/spring-petclinic:latest
     echo "Startup Script: Finished."
   EOT
 
@@ -71,12 +71,12 @@ resource "google_compute_instance" "docker_host" {
 # Firewall Rule (simplified name, targets tag from instance)
 resource "google_compute_firewall" "allow_access" {
   project = var.gcp_project_id
-  name    = "${var.instance_name}-allow-ssh-http" # Dynamic name based on instance
+  name    = "${var.instance_name}-allow-http" # Dynamic name based on instance
   network = "default" # Assumes default VPC
 
   allow {
     protocol = "tcp"
-    ports    = ["22", "8081"] # Allow SSH and App Port
+    ports    = ["8081"] # Allow SSH and App Port
   }
 
   # Apply rule to instances with the specified name tag
