@@ -36,13 +36,27 @@ resource "google_compute_instance" "docker_host" {
 
   metadata_startup_script = <<-EOT
     #!/bin/bash
-    echo "Starting Docker container..."
-    apt-get update
-    apt-get install -y docker.io
+    echo "Startup Script: Updating, installing Docker & gcloud CLI..."
+    apt-get update -y
+    apt-get install -y docker.io google-cloud-sdk
+
+    echo "Startup Script: Starting Docker..."
     systemctl start docker
     systemctl enable docker
-    docker run -d --name spring-petclinic-app -p 8081:8080 gcr.io/${var.gcp_project_id}/spring-petclinic:latest
-    echo "Docker container started."
+
+    echo "Startup Script: Authenticating Docker to GCR"
+    gcloud auth configure-docker gcr.io --quiet
+
+    echo "Startup Script: Pulling PetClinic image"
+    docker pull gcr.io/${var.gcp_project_id}/spring-petclinic:latest
+
+    echo "Startup Script: Stopping/Removing existing container"
+    docker stop spring-petclinic-app || true
+    docker rm spring-petclinic-app || true
+
+    echo "Startup Script: Starting new PetClinic container"
+    docker run -d --name spring-petclinic-app -p 8081:8080 --restart always gcr.io/${var.gcp_project_id}/spring-petclinic:latest
+    echo "Startup Script: Finished."
   EOT
 
   service_account {
