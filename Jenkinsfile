@@ -58,7 +58,7 @@ pipeline {
             steps{
                 dir('infra'){
                     sh 'terraform init'
-                    withCredentials(string(credentialsId: 'service-acc-email', variable: 'SERVICE_ACC_EMAIL')) {
+                    withCredentials([string(credentialsId: 'service-acc-email', variable: 'SERVICE_ACC_EMAIL')]) {
                         sh "terraform apply -auto-approve \
                             -var='gcp_project_id=${GCLOUD_PROJECT_ID}' \
                             -var='service_account_email=${SERVICE_ACC_EMAIL}' \
