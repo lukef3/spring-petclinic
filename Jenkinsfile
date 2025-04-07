@@ -7,6 +7,7 @@ pipeline {
 
     environment {
         GCLOUD_PROJECT_ID = 'petclinic-455414'
+        INSTANCE_NAME = 'PetClinic-VM'
     }
 
     stages {
@@ -49,6 +50,20 @@ pipeline {
                     sh 'gcloud auth configure-docker'
                     sh 'docker tag spring-petclinic:latest gcr.io/${GCLOUD_PROJECT_ID}/spring-petclinic:latest'  // tag the built docker image with a repository tag. https://cloud.google.com/artifact-registry/docs/docker/pushing-and-pulling?hl=en#push-tagged
                     sh 'docker push gcr.io/${GCLOUD_PROJECT_ID}/spring-petclinic:latest'
+                }
+            }
+        }
+
+        stage('Provision and Deploy to Google Compute Engine'){
+            steps{
+                dir('infra'){
+                    sh 'terraform init'
+                    withCredentials(string(credentialsId: 'service-acc-email', variable: 'SERVICE_ACC_EMAIL')) {
+                        sh "terraform apply -auto-approve \
+                            -var='gcp_project_id=${GCLOUD_PROJECT_ID}' \
+                            -var='service_account_email=${SERVICE_ACC_EMAIL}' \
+                            -var='instance_name=${INSTANCE_NAME}'"
+                    }
                 }
             }
         }
