@@ -7,7 +7,7 @@ pipeline {
 
     environment {
         GCLOUD_PROJECT_ID = 'petclinic-455414'
-        INSTANCE_NAME = 'PetClinic-VM'
+        INSTANCE_NAME = 'petclinic-vm'
     }
 
     stages {
