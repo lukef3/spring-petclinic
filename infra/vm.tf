@@ -54,11 +54,11 @@ resource "google_compute_instance" "docker_host" {
     docker pull gcr.io/${var.gcp_project_id}/spring-petclinic:latest
 
     echo "Startup Script: Stopping/Removing existing container"
-    docker stop spring-petclinic-app || true
-    docker rm spring-petclinic-app || true
+    docker stop spring-petclinic || true
+    docker rm spring-petclinic || true
 
     echo "Startup Script: Starting new PetClinic container"
-    docker run -d --name spring-petclinic-app -p 8081:8080 --restart always gcr.io/${var.gcp_project_id}/spring-petclinic:latest
+    docker run -d --name spring-petclinic -p 8081:8080 --restart always gcr.io/${var.gcp_project_id}/spring-petclinic:latest
     echo "Startup Script: Finished."
   EOT
 
