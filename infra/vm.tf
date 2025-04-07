@@ -38,9 +38,12 @@ resource "google_compute_instance" "docker_host" {
     #!/bin/bash
     echo "Startup Script: Updating, installing Docker & gcloud CLI..."
     apt-get update -y
-    apt-get install -y docker.io google-cloud-sdk
+    apt-get install -y docker.io
 
-    echo "Startup Script: Starting Docker..."
+    echo "Startup Script: Installing google-cloud-cli"
+    apt-get install -y google-cloud-cli
+
+    echo "Startup Script: Starting Docker"
     systemctl start docker
     systemctl enable docker
 
