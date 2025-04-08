@@ -8,19 +8,22 @@ terraform {
 }
 provider "google" {
   project = var.gcp_project_id
-  region = "europe-west2"
+  region = var.vm_region
 }
 
 variable "gcp_project_id" {}
 variable "service_account_email" {}
 variable "instance_name" {}
+variable "vm_region" {}
+variable "vm_zone" {}
+variable "machine_type" {}
 
 # VM Provisioning
 resource "google_compute_instance" "docker_host" {
   project      = var.gcp_project_id
   name         = var.instance_name
-  machine_type = "e2-small"
-  zone         = "europe-west2-c"
+  machine_type = var.machine_type
+  zone         = var.vm_zone
   tags         = [var.instance_name, "http-server"] # Simple tags
 
   boot_disk {
