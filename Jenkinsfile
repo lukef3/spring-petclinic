@@ -84,8 +84,9 @@ pipeline {
 
         stage('Update GCE Docker Container'){
             steps{
-                withCredentials([sshPrivateKey(credentialsID: 'petclinic-vm-ssh-key', keyFileVariable: 'SSH_PRIVATE_KEY')]){
-                    def IP = sh(script: "gcloud compute instances describe ${INSTANCE_NAME} --zone=${VM_ZONE} --project=${GCLOUD_PROJECT_ID} --format='value(networkInterfaces[0].accessConfigs[0].natIP)'", returnStdout: true).trim()
+                script{
+                    withCredentials([sshPrivateKey(credentialsID: 'petclinic-vm-ssh-key', keyFileVariable: 'SSH_PRIVATE_KEY')]){
+                        def IP = sh(script: "gcloud compute instances describe ${INSTANCE_NAME} --zone=${VM_ZONE} --project=${GCLOUD_PROJECT_ID} --format='value(networkInterfaces[0].accessConfigs[0].natIP)'", returnStdout: true).trim()
                     def remoteCommand = """
                       docker pull gcr.io/${GCLOUD_PROJECT_ID}/spring-petclinic:latest
                       docker stop ${INSTANCE_NAME} || true
@@ -104,6 +105,7 @@ pipeline {
                         ${SSH_USER}@${externalIp} \
                         '${remoteCommand}'
                     """
+                    }
                 }
             }
         }
