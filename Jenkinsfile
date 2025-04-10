@@ -82,14 +82,14 @@ pipeline {
             }
         }
 
-        stage('Update GCE Docker Container'){
-            steps{
-                script{
-                    withCredentials([sshPrivateKey(credentialsID: 'petclinic-vm-ssh-key', keyFileVariable: 'SSH_PRIVATE_KEY')]){
+stage('Update GCE Docker Container') {
+            steps {
+                script {
+                    withCredentials([sshUserPrivateKey(credentialsID: 'petclinic-vm-ssh-key', keyFileVariable: 'SSH_PRIVATE_KEY')]) {
                         // Get VM external IP
                         def IP = sh(script: "gcloud compute instances describe ${INSTANCE_NAME} --zone=${VM_ZONE} --project=${GCLOUD_PROJECT_ID} --format='value(networkInterfaces[0].accessConfigs[0].natIP)'", returnStdout: true).trim()
-                        // command to pull new Docker image, remove old image, and run new image
-                        def command = """
+
+                        def remoteCommand = """
                           docker pull gcr.io/${GCLOUD_PROJECT_ID}/spring-petclinic:latest
                           docker stop ${INSTANCE_NAME} || true
                           docker rm ${INSTANCE_NAME} || true
@@ -99,13 +99,14 @@ pipeline {
                             --restart always \
                             gcr.io/${GCLOUD_PROJECT_ID}/spring-petclinic:latest
                         """
-                        // run command over SSH
-                        sh """
-                          ssh -o StrictHostKeyChecking=no \
-                            -i "${SSH_PRIVATE_KEY}" \
-                            ${env.SSH_USER}@${IP} \
-                            '${command}'
-                        """
+
+                        sshCommand(
+                            command: remoteCommand,
+                            host: IP,
+                            username: SSH_USER,
+                            privateKey: SSH_PRIVATE_KEY,
+                            hostKeyCheck: false
+                        )
                     }
                 }
             }
