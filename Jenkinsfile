@@ -82,45 +82,58 @@ pipeline {
             }
         }
 
-stage('Update GCE Docker Container') {
-            steps {
-                script {
-                    withCredentials([sshUserPrivateKey(credentialsID: 'petclinic-vm-ssh-key', keyFileVariable: 'SSH_PRIVATE_KEY')]) {
-                        // Get VM external IP
-                        def IP = sh(script: "gcloud compute instances describe ${INSTANCE_NAME} --zone=${VM_ZONE} --project=${GCLOUD_PROJECT_ID} --format='value(networkInterfaces[0].accessConfigs[0].natIP)'", returnStdout: true).trim()
+        stage('Test Credential') {
+                steps {
+                    script {
+                        echo "Attempting to bind credential..."
+                    withCredentials([sshUserPrivateKey(credentialsId: 'petclinic-vm-ssh-key', keyFileVariable: 'TEST_SSH_KEY_FILE', usernameVariable: 'TEST_SSH_USER')]) {
+                                echo "Credential bound successfully!"
+                        echo "Username variable: ${env.TEST_SSH_USER}"
+                    }
+                    echo "test finished."
+                }
+            }
+        }
 
-                        def remoteCommand = """
-                          docker pull gcr.io/${GCLOUD_PROJECT_ID}/spring-petclinic:latest
-                          docker stop ${INSTANCE_NAME} || true
-                          docker rm ${INSTANCE_NAME} || true
-                          docker run -d \
-                            --name ${INSTANCE_NAME} \
-                            -p 8081:8081 \
-                            --restart always \
-                            gcr.io/${GCLOUD_PROJECT_ID}/spring-petclinic:latest
-                        """
+        stage('Update GCE Docker Container') {
+                steps {
+                    script {
+                        withCredentials([sshUserPrivateKey(credentialsID: 'petclinic-vm-ssh-key', keyFileVariable: 'SSH_PRIVATE_KEY')]) {
+                            // Get VM external IP
+                            def IP = sh(script: "gcloud compute instances describe ${INSTANCE_NAME} --zone=${VM_ZONE} --project=${GCLOUD_PROJECT_ID} --format='value(networkInterfaces[0].accessConfigs[0].natIP)'", returnStdout: true).trim()
 
-                        sshCommand(
-                            command: remoteCommand,
-                            host: IP,
-                            username: SSH_USER,
-                            privateKey: SSH_PRIVATE_KEY,
-                            hostKeyCheck: false
-                        )
+                            def remoteCommand = """
+                              docker pull gcr.io/${GCLOUD_PROJECT_ID}/spring-petclinic:latest
+                              docker stop ${INSTANCE_NAME} || true
+                              docker rm ${INSTANCE_NAME} || true
+                              docker run -d \
+                                --name ${INSTANCE_NAME} \
+                                -p 8081:8081 \
+                                --restart always \
+                                gcr.io/${GCLOUD_PROJECT_ID}/spring-petclinic:latest
+                            """
+
+                            sshCommand(
+                                command: remoteCommand,
+                                host: IP,
+                                username: SSH_USER,
+                                privateKey: SSH_PRIVATE_KEY,
+                                hostKeyCheck: false
+                            )
+                        }
+                    }
+                }
+            }
+
+            stage('Deploy to Google Cloud Run'){
+                steps{
+                    withCredentials([file(credentialsId: 'gcloud-creds', variable: 'GCLOUD_CREDS')]) {
+                        sh 'gcloud auth activate-service-account --key-file="$GCLOUD_CREDS"' // authenticate with service account with my credentials file
+                        sh 'gcloud run deploy spring-petclinic --image gcr.io/${GCLOUD_PROJECT_ID}/spring-petclinic:latest --project ${GCLOUD_PROJECT_ID} --region europe-west2 --allow-unauthenticated --port 8081'  // https://cloud.google.com/run/docs/deploying#gcloud
                     }
                 }
             }
         }
-
-        stage('Deploy to Google Cloud Run'){
-            steps{
-                withCredentials([file(credentialsId: 'gcloud-creds', variable: 'GCLOUD_CREDS')]) {
-                    sh 'gcloud auth activate-service-account --key-file="$GCLOUD_CREDS"' // authenticate with service account with my credentials file
-                    sh 'gcloud run deploy spring-petclinic --image gcr.io/${GCLOUD_PROJECT_ID}/spring-petclinic:latest --project ${GCLOUD_PROJECT_ID} --region europe-west2 --allow-unauthenticated --port 8081'  // https://cloud.google.com/run/docs/deploying#gcloud
-                }
-            }
-        }
-    }
 
     post {
         always {
