@@ -73,7 +73,7 @@ pipeline {
                                   -var='instance_name=${INSTANCE_NAME}' \
                                   -var='vm_region=${VM_REGION}' \
                                   -var='vm_zone=${VM_ZONE}' \
-                                  -var='machine_type'=${VM_MACHINE_TYPE}' """
+                                  -var='machine_type=${VM_MACHINE_TYPE}' """
                          }
                     }
                 }
