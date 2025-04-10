@@ -33,7 +33,9 @@ pipeline {
         }
         stage('Deploy to Web Server')
         {
-            sh 'java -jar ./target/spring-petclinic-*.jar'
+            steps{
+                sh 'java -jar ./target/spring-petclinic-*.jar'
+            }
         }
     }
 
