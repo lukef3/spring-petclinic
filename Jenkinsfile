@@ -12,7 +12,7 @@ pipeline {
         VM_REGION = 'europe-west2'
         VM_ZONE = 'europe-west2-c'
         VM_MACHINE_TYPE = 'e2-small'
-        SSH_USERNAME = 'jenkins'
+        SSH_USER = 'jenkins'
     }
 
     stages {
@@ -86,25 +86,26 @@ pipeline {
             steps{
                 script{
                     withCredentials([sshPrivateKey(credentialsID: 'petclinic-vm-ssh-key', keyFileVariable: 'SSH_PRIVATE_KEY')]){
+                        // Get VM external IP
                         def IP = sh(script: "gcloud compute instances describe ${INSTANCE_NAME} --zone=${VM_ZONE} --project=${GCLOUD_PROJECT_ID} --format='value(networkInterfaces[0].accessConfigs[0].natIP)'", returnStdout: true).trim()
-                    def remoteCommand = """
-                      docker pull gcr.io/${GCLOUD_PROJECT_ID}/spring-petclinic:latest
-                      docker stop ${INSTANCE_NAME} || true
-                      docker rm ${INSTANCE_NAME} || true
-                      docker run -d \
-                        --name ${INSTANCE_NAME} \
-                        -p 8081:8081 \
-                        --restart always \
-                        gcr.io/${GCLOUD_PROJECT_ID}/spring-petclinic:latest
-                    """
-
-                    sh """
-                      ssh \
-                        -o StrictHostKeyChecking=no \
-                        -i "${SSH_PRIVATE_KEY}" \
-                        ${SSH_USER}@${externalIp} \
-                        '${remoteCommand}'
-                    """
+                        // command to pull new Docker image, remove old image, and run new image
+                        def command = """
+                          docker pull gcr.io/${GCLOUD_PROJECT_ID}/spring-petclinic:latest
+                          docker stop ${INSTANCE_NAME} || true
+                          docker rm ${INSTANCE_NAME} || true
+                          docker run -d \
+                            --name ${INSTANCE_NAME} \
+                            -p 8081:8081 \
+                            --restart always \
+                            gcr.io/${GCLOUD_PROJECT_ID}/spring-petclinic:latest
+                        """
+                        // run command over SSH
+                        sh """
+                          ssh -o StrictHostKeyChecking=no \
+                            -i "${SSH_PRIVATE_KEY}" \
+                            ${SSH_USER}@${externalIp} \
+                            '${command}'
+                        """
                     }
                 }
             }
