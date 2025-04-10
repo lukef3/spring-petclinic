@@ -12,6 +12,7 @@ pipeline {
         VM_REGION = 'europe-west2'
         VM_ZONE = 'europe-west2-c'
         VM_MACHINE_TYPE = 'e2-small'
+        SSH_USERNAME = 'jenkins'
     }
 
     stages {
@@ -58,12 +59,12 @@ pipeline {
             }
         }
 
-        stage('Provision and Deploy to Google Compute Engine'){
+        stage('Provision Google Compute Engine'){
             steps{
                 dir('infra'){
-                    withCredentials([file(credentialsId: 'gcloud-creds', variable: 'GCLOUD_CREDS_PATH')]) {
+                    withCredentials([file(credentialsId: 'gcloud-creds', variable: 'GCLOUD_CREDS')]) {
                         script {
-                            env.GOOGLE_APPLICATION_CREDENTIALS = env.GCLOUD_CREDS_PATH
+                            env.GOOGLE_APPLICATION_CREDENTIALS = env.GCLOUD_CREDS
                              echo "Initializing Terraform..."
                              sh 'terraform init'
                              echo "Applying Terraform changes..."
@@ -73,9 +74,36 @@ pipeline {
                                   -var='instance_name=${INSTANCE_NAME}' \
                                   -var='vm_region=${VM_REGION}' \
                                   -var='vm_zone=${VM_ZONE}' \
-                                  -var='machine_type=${VM_MACHINE_TYPE}' """
+                                  -var='machine_type=${VM_MACHINE_TYPE}' \
+                                  -var='ssh_user=${SSH_USER}'"""
                          }
                     }
+                }
+            }
+        }
+
+        stage('Update GCE Docker Container'){
+            steps{
+                withCredentials([sshPrivateKey(credentialsID: 'petclinic-vm-ssh-key', keyFileVariable: 'SSH_PRIVATE_KEY')]){
+                    def IP = sh(script: "gcloud compute instances describe ${INSTANCE_NAME} --zone=${VM_ZONE} --project=${GCLOUD_PROJECT_ID} --format='value(networkInterfaces[0].accessConfigs[0].natIP)'", returnStdout: true).trim()
+                    def remoteCommand = """
+                      docker pull gcr.io/${GCLOUD_PROJECT_ID}/spring-petclinic:latest
+                      docker stop ${INSTANCE_NAME} || true
+                      docker rm ${INSTANCE_NAME} || true
+                      docker run -d \
+                        --name ${INSTANCE_NAME} \
+                        -p 8081:8081 \
+                        --restart always \
+                        gcr.io/${GCLOUD_PROJECT_ID}/spring-petclinic:latest
+                    """
+
+                    sh """
+                      ssh \
+                        -o StrictHostKeyChecking=no \
+                        -i "${SSH_PRIVATE_KEY}" \
+                        ${SSH_USER}@${externalIp} \
+                        '${remoteCommand}'
+                    """
                 }
             }
         }

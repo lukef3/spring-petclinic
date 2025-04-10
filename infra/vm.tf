@@ -17,6 +17,9 @@ variable "instance_name" {}
 variable "vm_region" {}
 variable "vm_zone" {}
 variable "machine_type" {}
+variable "ssh_user" {
+  default = "jenkins"
+}
 
 # VM Provisioning
 resource "google_compute_instance" "docker_host" {
@@ -35,6 +38,10 @@ resource "google_compute_instance" "docker_host" {
   network_interface {
     network = "default"
     access_config {}
+  }
+
+  metadata = {
+    ssh-keys = "${var.ssh_user}:${file("petclinic-jenkins-ssh.pub")}"
   }
 
   metadata_startup_script = <<-EOT
@@ -56,10 +63,6 @@ resource "google_compute_instance" "docker_host" {
     echo "Startup Script: Pulling PetClinic image"
     docker pull gcr.io/${var.gcp_project_id}/spring-petclinic:latest
 
-    echo "Startup Script: Stopping/Removing existing container"
-    docker stop spring-petclinic || true
-    docker rm spring-petclinic || true
-
     echo "Startup Script: Starting new PetClinic container"
     docker run -d --name spring-petclinic -p 8081:8081 --restart always gcr.io/${var.gcp_project_id}/spring-petclinic:latest
     echo "Startup Script: Finished."
@@ -79,7 +82,7 @@ resource "google_compute_firewall" "allow_access" {
 
   allow {
     protocol = "tcp"
-    ports    = ["8081"] # Allow SSH and App Port
+    ports    = ["8081", "22"] # Allow SSH and App Port
   }
 
   # Apply rule to instances with the specified name tag
