@@ -31,7 +31,7 @@ pipeline {
                 waitForQualityGate abortPipeline: true // wait for scan results to return
             }
         }
-        stage('Deploy to Local Web Server')
+        stage('Deploy to Web Server')
         {
             steps{
                 sh 'java -jar ./target/spring-petclinic-*.jar'
