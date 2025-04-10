@@ -65,7 +65,7 @@ pipeline {
                         script {
                             env.GOOGLE_APPLICATION_CREDENTIALS = env.GCLOUD_CREDS_PATH
                              echo "Initializing Terraform..."
-                             sh 'terraform init -reconfigure'
+                             sh 'terraform init'
                              echo "Applying Terraform changes..."
                              sh """terraform apply -auto-approve \
                                   -var='gcp_project_id=${GCLOUD_PROJECT_ID}' \
