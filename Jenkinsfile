@@ -5,15 +5,6 @@ pipeline {
         maven 'Maven_3.9.9' // Jenkins maven installation
     }
 
-    environment {
-        GCLOUD_PROJECT_ID = 'petclinic-455414'
-        INSTANCE_NAME = 'petclinic-vm'
-        SERVICE_ACC_EMAIL = 'jenkins-gcloud@petclinic-455414.iam.gserviceaccount.com'
-        VM_REGION = 'europe-west2'
-        VM_ZONE = 'europe-west2-c'
-        VM_MACHINE_TYPE = 'e2-small'
-    }
-
     stages {
         stage('Checkout') {
             steps {
@@ -40,53 +31,9 @@ pipeline {
                 waitForQualityGate abortPipeline: true // wait for scan results to return
             }
         }
-        stage('Docker Build') {
-            steps {
-                sh 'docker build -t spring-petclinic:latest .'
-            }
-        }
-
-        stage('Push Image to Google Container Registry') {
-            steps {
-                withCredentials([file(credentialsId: 'gcloud-creds', variable: 'GCLOUD_CREDS')]) {
-                    sh 'gcloud version' // test print google cloud version
-                    sh 'gcloud auth activate-service-account --key-file="$GCLOUD_CREDS"' // authenticate with service account with my credentials file
-                    sh 'gcloud auth configure-docker'
-                    sh 'docker tag spring-petclinic:latest gcr.io/${GCLOUD_PROJECT_ID}/spring-petclinic:latest'  // tag the built docker image with a repository tag. https://cloud.google.com/artifact-registry/docs/docker/pushing-and-pulling?hl=en#push-tagged
-                    sh 'docker push gcr.io/${GCLOUD_PROJECT_ID}/spring-petclinic:latest'
-                }
-            }
-        }
-
-        stage('Provision and Deploy to Google Compute Engine'){
-            steps{
-                dir('infra'){
-                     withCredentials([file(credentialsId: 'gcloud-creds', variable: 'GCLOUD_CREDS_PATH')]) {
-                        script {
-                             env.GOOGLE_APPLICATION_CREDENTIALS = env.GCLOUD_CREDS_PATH
-                             echo "Initializing Terraform..."
-                             sh 'terraform init -reconfigure'
-                             echo "Applying Terraform changes..."
-                             sh """terraform apply -auto-approve \
-                                   -var='gcp_project_id=${GCLOUD_PROJECT_ID}' \
-                                   -var='service_account_email=${SERVICE_ACC_EMAIL}' \
-                                   -var='instance_name=${INSTANCE_NAME}' \
-                                   -var='vm_region=${VM_REGION}' \
-                                   -var='vm_zone=${VM_ZONE}' \
-                                   -var='machine_type=${VM_MACHINE_TYPE}'"""
-                         }
-                    }
-                }
-            }
-        }
-
-        stage('Deploy to Google Cloud Run'){
-            steps{
-                withCredentials([file(credentialsId: 'gcloud-creds', variable: 'GCLOUD_CREDS')]) {
-                    sh 'gcloud auth activate-service-account --key-file="$GCLOUD_CREDS"' // authenticate with service account with my credentials file
-                    sh 'gcloud run deploy spring-petclinic --image gcr.io/${GCLOUD_PROJECT_ID}/spring-petclinic:latest --project ${GCLOUD_PROJECT_ID} --region europe-west2 --allow-unauthenticated --port 8081'  // https://cloud.google.com/run/docs/deploying#gcloud
-                }
-            }
+        stage('Deploy to Web Server')
+        {
+            sh 'java -jar ./target/spring-petclinic-*.jar'
         }
     }
 
@@ -102,3 +49,6 @@ pipeline {
         }
     }
 }
+
+
+
