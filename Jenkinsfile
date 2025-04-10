@@ -103,7 +103,7 @@ pipeline {
                         sh """
                           ssh -o StrictHostKeyChecking=no \
                             -i "${SSH_PRIVATE_KEY}" \
-                            ${SSH_USER}@${externalIp} \
+                            ${SSH_USER}@${IP} \
                             '${command}'
                         """
                     }
