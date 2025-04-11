@@ -85,6 +85,7 @@ pipeline {
         stage('Update GCE Docker Container') {
                 steps {
                     script {
+                        sleep time: 60, unit: 'SECONDS' // give the VM some time after provisioning
                         withCredentials([sshUserPrivateKey(credentialsId: 'petclinic-vm-ssh-key', keyFileVariable: 'SSH_PRIVATE_KEY', usernameVariable: 'SSH_USERNAME')]) {
                             // Get VM external IP
                             def IP = sh(script: "gcloud compute instances describe ${INSTANCE_NAME} --zone=${VM_ZONE} --project=${GCLOUD_PROJECT_ID} --format='value(networkInterfaces[0].accessConfigs[0].natIP)'", returnStdout: true).trim()
