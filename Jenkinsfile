@@ -10,7 +10,7 @@ pipeline {
         INSTANCE_NAME = 'petclinic-vm'
         SERVICE_ACC_EMAIL = 'jenkins-gcloud@petclinic-455414.iam.gserviceaccount.com'
         VM_REGION = 'europe-west2'
-        VM_ZONE = 'europe-west2-c'
+        VM_ZONE = 'europe-west2-b'
         VM_MACHINE_TYPE = 'e2-small'
         SSH_USER = 'jenkins'
     }
