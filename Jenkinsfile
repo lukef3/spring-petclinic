@@ -10,7 +10,7 @@ pipeline {
         INSTANCE_NAME = 'petclinic-vm'
         SERVICE_ACC_EMAIL = 'jenkins-gcloud@petclinic-455414.iam.gserviceaccount.com'
         VM_REGION = 'europe-west2'
-        VM_ZONE = 'europe-west2-b'
+        VM_ZONE = 'europe-west2-c'
         VM_MACHINE_TYPE = 'e2-small'
         SSH_USER = 'jenkins'
     }
@@ -90,6 +90,7 @@ pipeline {
                             // Get VM external IP
                             def IP = sh(script: "gcloud compute instances describe ${INSTANCE_NAME} --zone=${VM_ZONE} --project=${GCLOUD_PROJECT_ID} --format='value(networkInterfaces[0].accessConfigs[0].natIP)'", returnStdout: true).trim()
                             def command = """
+                              gcloud auth configure-docker gcr.io -q
                               docker pull gcr.io/${GCLOUD_PROJECT_ID}/spring-petclinic:latest
                               docker stop ${INSTANCE_NAME} || true
                               docker rm ${INSTANCE_NAME} || true
