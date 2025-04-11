@@ -92,10 +92,10 @@ pipeline {
                             def command = """
                               gcloud auth configure-docker gcr.io -q
                               docker pull gcr.io/${GCLOUD_PROJECT_ID}/spring-petclinic:latest
-                              docker stop ${INSTANCE_NAME} || true
-                              docker rm ${INSTANCE_NAME} || true
+                              docker stop spring-petclinic || true
+                              docker rm spring-petclinic || true
                               docker run -d \
-                                --name ${INSTANCE_NAME} \
+                                --name spring-petclinic \
                                 -p 8081:8081 \
                                 --restart always \
                                 gcr.io/${GCLOUD_PROJECT_ID}/spring-petclinic:latest
