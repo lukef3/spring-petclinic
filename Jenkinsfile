@@ -62,8 +62,8 @@ pipeline {
                 dir('infra'){
                     withCredentials([
                             file(credentialsId: 'gcloud-creds', variable: 'GCLOUD_CREDS'),
-                            string(credentialsId: 'ssh-user-creds', variable: 'SSH_USER'),
-                            string(credentialsId: 'service-account-email-creds', variable: 'SERVICE_ACC_EMAIL')
+                            string(credentialsId: 'ssh-user', variable: 'SSH_USER'),
+                            string(credentialsId: 'service-account-email', variable: 'SERVICE_ACC_EMAIL')
                         ]) {
                         script {
                             env.GOOGLE_APPLICATION_CREDENTIALS = env.GCLOUD_CREDS
