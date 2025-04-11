@@ -82,23 +82,10 @@ pipeline {
             }
         }
 
-        stage('Test Credential') {
-                steps {
-                    script {
-                        echo "Attempting to bind credential..."
-                    withCredentials([sshUserPrivateKey(credentialsId: 'petclinic-vm-ssh-key', keyFileVariable: 'TEST_SSH_KEY_FILE', usernameVariable: 'TEST_SSH_USER')]) {
-                                echo "Credential bound successfully!"
-                        echo "Username variable: ${env.TEST_SSH_USER}"
-                    }
-                    echo "test finished."
-                }
-            }
-        }
-
         stage('Update GCE Docker Container') {
                 steps {
                     script {
-                        withCredentials([sshUserPrivateKey(credentialsID: 'petclinic-vm-ssh-key', keyFileVariable: 'SSH_PRIVATE_KEY')]) {
+                        withCredentials([sshUserPrivateKey(credentialsId: 'petclinic-vm-ssh-key', keyFileVariable: 'SSH_PRIVATE_KEY')]) {
                             // Get VM external IP
                             def IP = sh(script: "gcloud compute instances describe ${INSTANCE_NAME} --zone=${VM_ZONE} --project=${GCLOUD_PROJECT_ID} --format='value(networkInterfaces[0].accessConfigs[0].natIP)'", returnStdout: true).trim()
 
