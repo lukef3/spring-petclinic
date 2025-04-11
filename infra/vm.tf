@@ -57,6 +57,9 @@ resource "google_compute_instance" "docker_host" {
     systemctl start docker
     systemctl enable docker
 
+    useradd ${var.ssh_user} -m -s /bin/bash || true
+    usermod -aG docker ${var.ssh_user}
+
     echo "Startup Script: Authenticating Docker to GCR"
     gcloud auth configure-docker gcr.io --quiet
 
