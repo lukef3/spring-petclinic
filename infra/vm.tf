@@ -27,7 +27,7 @@ resource "google_compute_instance" "docker_host" {
   name         = var.instance_name
   machine_type = var.machine_type
   zone         = var.vm_zone
-  tags         = [var.instance_name, "http-server"] # Simple tags
+  tags         = [var.instance_name, "http-server"]
 
   boot_disk {
     initialize_params {
@@ -77,18 +77,17 @@ resource "google_compute_instance" "docker_host" {
   }
 }
 
-# Firewall Rule (simplified name, targets tag from instance)
+# Firewall Rule
 resource "google_compute_firewall" "allow_access" {
   project = var.gcp_project_id
-  name    = "${var.instance_name}-allow-http" # Dynamic name based on instance
-  network = "default" # Assumes default VPC
+  name    = "${var.instance_name}-allow-http"
+  network = "default"
 
   allow {
     protocol = "tcp"
-    ports    = ["8081", "22"] # Allow SSH and App Port
+    ports    = ["8081", "22"] # Allow SSH and Application Port
   }
 
-  # Apply rule to instances with the specified name tag
   target_tags   = [var.instance_name]
   source_ranges = ["0.0.0.0/0"] # Allow from anywhere
 }

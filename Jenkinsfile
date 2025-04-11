@@ -8,11 +8,9 @@ pipeline {
     environment {
         GCLOUD_PROJECT_ID = 'petclinic-455414'
         INSTANCE_NAME = 'petclinic-vm'
-        SERVICE_ACC_EMAIL = 'jenkins-gcloud@petclinic-455414.iam.gserviceaccount.com'
         VM_REGION = 'europe-west2'
         VM_ZONE = 'europe-west2-c'
         VM_MACHINE_TYPE = 'e2-small'
-        SSH_USER = 'jenkins'
     }
 
     stages {
@@ -62,7 +60,11 @@ pipeline {
         stage('Provision Google Compute Engine'){
             steps{
                 dir('infra'){
-                    withCredentials([file(credentialsId: 'gcloud-creds', variable: 'GCLOUD_CREDS')]) {
+                    withCredentials([
+                            file(credentialsId: 'gcloud-creds', variable: 'GCLOUD_CREDS'),
+                            string(credentialsId: 'ssh-user-creds', variable: 'SSH_USER'),
+                            string(credentialsId: 'service-account-email-creds', variable: 'SERVICE_ACC_EMAIL')
+                        ]) {
                         script {
                             env.GOOGLE_APPLICATION_CREDENTIALS = env.GCLOUD_CREDS
                              echo "Initializing Terraform..."
