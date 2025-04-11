@@ -101,6 +101,7 @@ pipeline {
 
                             sshCommand(
                                 remote: [
+                                    name: INSTANCE_NAME,
                                     host: IP,
                                     user: SSH_USERNAME,
                                     identityFile: SSH_PRIVATE_KEY,
